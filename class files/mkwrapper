@@ -1,0 +1,46 @@
+#!/bin/env bash
+# Author : Abbas Moghtanei
+# Objective : This script creates a wrapper around the java program to
+#             simplify running any java program. This wrapper assumes
+#             that the java program is already compiled and the class
+#             file is available.
+#
+
+(( $# == 0 )) && { echo "usage: mkwrapper filename"; exit 1; }
+
+filename=$1
+x=$(echo $filename | grep "\.java$")
+[ -n "$x" ] && filename=$(echo $filename|sed "s/\.java$//")
+#echo $filename
+
+if [ -f "$filename" ]; then
+   echo -n "$filename exists, over write (y/n)? "
+   read ans 
+   [ $ans = "n" -o $ans = "N" ] && exit 0
+fi
+
+
+> $filename
+
+d=$(date "+%m/%d/%y")
+
+finger 2>/dev/null 1>&2 # to see if finger exists or not 
+if (( $? != 0 )); then
+   your_name=${MYNAME:-" put your name here"}
+else
+   your_name=$(finger $(whoami)|grep "Name"|tr -s '\t' ' '|cut -d' ' -f4,5)
+fi
+
+echo "#!/bin/env bash"                >> $filename
+echo "#                 "             >> $filename
+echo "# Author:  $your_name"          >> $filename
+echo "# Date  :  $d        "          >> $filename
+echo "# Program Name: $filename "     >> $filename
+echo "#                         "     >> $filename
+echo " "                              >> $filename
+echo "export PATH=$PATH:. "           >> $filename
+echo "export CLASSPATH=.:\$CLASSPATH ">> $filename
+echo "java \$(basename \$0) \$* "     >> $filename
+sed 's/^\.\///' $filename > $filename.$$
+mv $filename.$$ $filename
+chmod +x $filename

@@ -1,0 +1,45 @@
+Rules for formatting the Java programs:
+
+
+
+   1) Do not use TAB. We are using 4 spaces in place of a tab.
+
+   2) Do not place the left brace after your instruction on the same line.
+      You need to put it in the next line. For example:
+
+      if(a > b)
+      {
+          c += 12;
+          x--;
+      }
+
+   3) Separate your methods from each other. For example:
+
+      //*****************************add()*****************************
+      public int add(int a, int b)
+      {
+          return(a+b);
+      }
+      //*****************************div()******************************
+      public int div(int a, int b)
+      {
+          return(a/b);
+      }
+      //*****************************subt()*****************************
+      public int subt(int a, int b)
+      {
+          return(a-b);
+      }
+      
+   4) Document your program. The beginning of your program might look like the
+      following example:
+
+      //  Author:   John Lin
+      //  Date  :   8/17/13
+      //  Homework assignment : 1
+      //  Objective : This program is doing blah blah blah...
+      //****************************************************************
+
+    5) Avoid long lines. The maximum length of each line in you program should
+       not exceed 66 characters.
+

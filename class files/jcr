@@ -1,0 +1,232 @@
+#!/bin/ksh
+# Author: Abbas Moghtanei
+# date:     4/20/2001
+# fixed some buggs: 9/01/2002 (thanks to Bertram Koo)
+# modified: 4/04/2002, 5/30/03, 7/20/07 2/8/08
+# modified: 2/8/08 to fix the problem of applets in java6 on hills
+# modified: 7/19/08 to fix the following problem:
+#           if </applet> was just after the <applet ....> tag on
+#           the same line in the java source code, it was not
+#           creating the correct html file. Problem got fixed. 
+# jcr (Java Compile and Run)
+#################################fixtag()###############################
+fixtag()    #/7/20/07
+{
+   t="$*"
+   t=$(echo $t | sed -e "s!</[aA][pP][pP][lL[eE][tT]>!!") # added /7/19/08
+   t=$(echo $t | sed -e "s/^.*</</" -e "s/>.*$/>/")
+   t=$(echo $t | sed -e "s/ *= */=/g")
+   echo "$t"
+}
+##################################is_applet()###########################
+is_applet() #/2/8/08
+{
+   fname="$1"
+   a=$(grep "extends * Applet" $fname)
+   b=$(grep " init *(" $fname)
+   if [ -n "$a" -o -n "$b" ]; then
+      print "yes"
+   else
+      print "no"
+   fi
+} 
+#################################mkhtml()###############################
+mkhtml()
+{
+   if (( $# == 0 )); then
+      echo "Usage: $(basename $0) filename.java" && exit 1
+   fi
+
+   a=$(echo $1 | grep "\.java$")
+   if [ -z "$a" ]; then
+      echo "Invalid filename, missing .java extension" && exit 2
+   fi
+   if [ ! -f $1 ]; then
+      echo "error-- $1 does not exist" && exit 3
+   fi
+
+   filename=$(echo $1 | sed "s/\.java$/.html/")
+   if [ -f "$filename" ]; then
+      #cp $filename ${filename}.bak # make a backup, if already exists
+      return
+   fi
+
+   fname=$(echo $1 | sed "s/\.*java//")
+   # The following line was modified on 5/30/03
+   a=$(grep -i "<applet" $1|grep -i "code"|grep -i "width"|grep -i "height") 
+   # the 5 following lines are modified on 7/19/07
+   if [ -z "$a" ]; then
+      tag="<applet code=\"$fname\" align=middle width=500 height=400>"
+   else
+      tag=$(fixtag $a)
+    fi
+    echo "<HTML>"                                           >  $filename
+    echo "<!-- This HTML file is created automatically -->" >> $filename
+    echo "<!-- Date: $(date)      -->"                      >> $filename
+    echo "   <HEAD>"                                        >> $filename
+    echo "      <TITLE> Demo $fname </TITLE>"               >> $filename
+    echo "   </HEAD>"                                       >> $filename
+    echo "  <BODY>"                                         >> $filename
+    echo "   <CENTER>"                                      >> $filename
+    echo "          $tag "                                  >> $filename
+    echo "<!-- If you have <PARAMs>, insert them here  -->" >> $filename
+    echo "          </APPLET>"                              >> $filename
+    echo "   </CENTER>"                                     >> $filename
+    echo "  </BODY>"                                        >> $filename
+    echo "</HTML>"                                          >> $filename
+
+    if (( publicH == 1 )); then
+       cp $filename ${PUBLIC_HTML_PATH}/${filename}
+       chmod 755    ${PUBLIC_HTML_PATH}/${filename}
+    fi
+
+}
+################################sig_handler()#############################
+sig_handler()
+{
+   print "Compilation in progress, please do not interrupt..."
+}
+##########################################################################
+trap "sig_handler" 1 2 3 4 5 15
+USAGE=$(echo "Usage: $(basename $0) <-v><-p> filename.java")
+PUBLIC_HTML_PATH=${HOME}/public_html
+TEMPDIR=MyTempDir$$
+
+unalias cp 2>/dev/null
+unalias mv 2>/dev/null
+unalias rm 2>/dev/null
+
+
+if (( $# == 0 )); then
+   echo $USAGE
+   exit 1
+fi
+verbose=0
+publicH=0
+
+while getopts "vp" option ; do
+  case $option in
+  "v" )    verbose=1;;
+  "p" )    publicH=1
+           if [ ! -d $PUBLIC_HTML_PATH ]; then
+              if (( verbose == 1 )); then
+                 echo "creating the $PUBLIC_HTML_PATH directory..."
+              fi
+              mkdir $PUBLIC_HTML_PATH
+              chmod 755 $PUBLIC_HTML_PATH
+           fi;;
+  \?  )    echo "Invalid option"
+           echo $USAGE; exit 1
+  esac
+done
+
+while (( OPTIND > 1 )); do
+  (( OPTIND -= 1 ))
+  shift
+done
+
+if (( $# == 0 )); then
+   echo $USAGE
+   exit 1
+fi
+
+fname=$1
+#----------------------------------------------------------------------------
+# Applets compiled with java6 on hills, do not run properly with any browser.
+# Therefore, java5 will be used. Th efollowing 7 lines take care of this
+# problem:
+
+if [[ $(uname -s -n) = "HP-UX hills" ]]; then  
+   if [[ $(is_applet $fname) = "yes" ]]; then
+      export PATH=/opt/java1.5:/opt/java1.5/bin:$PATH
+   else
+      export PATH=/opt/java6:/opt/java6/bin:$PATH
+   fi
+fi
+
+if [ -f jikes ]; then
+   JAVAC=jikes
+else
+   JAVAC=javac
+fi
+
+if echo $fname | grep -q "\.java$"; then
+  if (( verbose == 1 )); then
+     print "compiling $fname ... "
+  fi
+  if (( publicH == 0 )); then
+      $JAVAC $fname 1> errfile 2>&1
+  else
+      #echo "creating the $TEMPDIR directory"
+      mkdir $TEMPDIR
+      $JAVAC -d $TEMPDIR $fname 1> errfile 2>&1
+      cd $TEMPDIR; chmod 755 *.*
+      mv *.* $PUBLIC_HTML_PATH
+      cd - 2>/dev/null 1>&2
+#     chmod 755 ${TEMPDIR}/*.class
+#     mv ${TEMPDIR}/*.class $PUBLIC_HTML_PATH
+      rm -rf $TEMPDIR
+  fi
+
+else
+  fname=${fname}.java
+fi
+
+if [ -s "errfile" ]; then
+   cat errfile
+   rm errfile
+   exit 0
+fi
+
+# check to see if it is an applet, then use appletviewer to run it
+# otherwise it is a stand-alone program and we should use "java"
+# to run it.
+
+a=$(grep "extends * Applet" $fname)
+b=$(grep " init *(" $fname)
+if [ -n "$a" -o -n "$b" ]; then
+ # if [ -f mkhtml ]; then
+      fname=$(echo $fname | sed "s/\.java$//")
+      htmlfile=${fname}.html
+      if (( verbose == 1 )); then
+         print "creating HTML file $htmlfile ... "
+      fi
+      mkhtml ${fname}.java
+
+      if (( publicH != 0 )); then
+         chmod 755 $htmlfile
+         mv $htmlfile $PUBLIC_HTML_PATH
+         #print "Please use the following URL to run the applet:"
+         #print $URL
+         print "Please use your browser to run the applet"
+         rm -f errfile 2> /dev/null
+         exit 0
+      fi
+
+      if (( verbose == 1 )); then
+         print "running applet ...\n "
+      fi
+      trap 1 2 3 4 5 15
+      appletviewer $htmlfile
+ # else
+ #    appletviewer $fname
+ # fi
+else
+   c=$(grep " main" $fname|grep "public"|grep "static"|grep "void"|grep "String")
+
+
+#   c=$(grep "main"  $fname)
+   if [ -n "$c" ]; then
+      fname=$(echo $fname | sed "s/\.java$//")
+      if (( verbose == 1 )); then
+         print "running ${fname}.java ...\n "
+      fi
+      trap 1 2 3 4 5 15
+      shift
+      java $fname $*
+   fi
+fi
+rm -f errfile
+exit 0
+
+

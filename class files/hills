@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+#exp_internal 1
+# Author: Abbas Moghtanei
+# This expect script send any file to hills.
+#
+set timeout 20
+spawn bash -c "ssh your_userid\@147.144.1.2"
+expect "*?assword:*"
+send -- "your_password\r"
+send -- "\r"
+interact
+#expect eof
+

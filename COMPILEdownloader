@@ -1,0 +1,5 @@
+#!/bin/bash
+
+javac Downloader.java
+
+java Downloader http://kosmixmedia.com/static/3c84ba1cc1a3df0fc0b1e0f17f8455fe.jpg

@@ -1,0 +1,96 @@
+Script started on Fri Sep 26 14:43:09 2014
+[?1034hbash-3.2$ cat mylib.java 
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package cs211s;
+
+/**
+ *
+ * @author mattlao
+ */
+public class mylib
+{
+
+public static void die(String ...msg)
+{
+    if(msg.length==0)System.exit(1);
+    System.err.println(msg[0]);
+    System.exit(1);
+
+}
+
+
+public static void println(Object ...o)
+{
+    for(int i=0;i<o.length;i++)
+    {
+        System.out.print(o[i]+" ");
+    }
+    
+    System.out.println();
+
+}
+
+public static void sleep(long msec)
+    {
+       try
+       {
+       Thread.sleep(msec);
+       }catch(InterruptedException e)
+       {}
+    }
+
+public static int rand(int a, int b)
+{
+    return ((int)((b-a+1)+Math.random()+a));
+
+}
+
+}
+bash-3.2$ javac mylib.java 
+bash-3.2$ cat CS211S.java 
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package cs211s;
+
+/**
+ *
+ * @author mattlao
+ */
+public class CS211S extends mylib{
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args){
+        
+       
+        println("printing");
+        
+    }
+        // TODO code application logic here
+  }
+    
+
+bash-3.2$ javac CS211S.java 
+CS211S.java:13: error: cannot find symbol
+public class CS211S extends mylib{
+                            ^
+  symbol: class mylib
+CS211S.java:21: error: cannot find symbol
+        println("printing");
+        ^
+  symbol:   method println(String)
+  location: class CS211S
+2 errors
+bash-3.2$ exit
+
+Script done on Fri Sep 26 14:43:56 2014

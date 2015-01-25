@@ -1,0 +1,827 @@
+#!/usr/local/bin/ruby 
+#                 
+# Author:  Abbas Moghtanei
+# Date  :  02/12/11        
+# Program Name: ij   (interactive java)
+# Objective: This is a very simple interactive java program. 
+# version 1:   implementing java expressions and assignment stataments.
+# version 2:   implementing java methods.
+# version 3:   implementing java classes. It handles inner class too.
+# version 4:   implementing java interfaces. Also "-l" is added.
+# version 4.1: command line handling is implemented.
+#              -f to choose the java filename is implemented.
+# version 4.2: -z deletes the classfiles now
+# version 4.3: ord and chr methods are added.
+# version 4.4: added import java.net.*, and import java.awt.event.* .
+#              Also -I and -M options are added.
+# version 4.5: added left, right, grep, ltrim, rtrim, join methods.
+# version 4.6: added the pa overloaded methods, and the count method.
+#              Also added the capitalize and $ and has methods.
+# version 4.7  added the -C option to display methods of the specified
+#              java package. 
+# version 4.8  added the sleep and rand methods. Also ij_logfile is added.
+# version 4.9  -g added to handle GUI. -G added to handle global variables
+#              in GUI. -D is added to specify the dimension of the GUI
+#              window. For example -D500,400  specifies the width is 500
+#              and height is 400. 
+# version 4.10 removed all pa methods and substitued with the p methods.
+# version 4.11 added p(boolean[]).
+# version 4.11 added p(), import java.lange.reflect.*; .
+# version 5.0  This is version has a major modification to the structure
+#              of ij. All of the internal ij methods such as p(), rand(),
+#              and so forth are removed and placed in the Libij.class in 
+#              the ijpackage package. This will elliminate the overhead
+#              of recompiling these methods every time the java code in ij
+#              is running. 
+#              Whenever the Libij.java is modified, then we need to 
+#              compile the library use: javac -O -d . Libij.java
+
+
+require "getoptlong"
+
+#**********************************get_version()****************************
+def get_version
+    x = RUBY_VERSION.split('.')
+    ver = 0.0
+    x.each_with_index do |num,i|
+       ver += num.to_f/10.0 ** i
+    end
+    ver
+end
+#************************************myself()********************************
+def myself()
+   $0.split('/').last
+end 
+
+### note: since ruby versions before 1.9 do not have start_with? and
+### end_with? methods, I make them here.
+
+if get_version < 1.9
+   class String
+      #*******************************ord()**********************************
+      def ord()
+          return( self[0] )
+      end
+      #****************************start_with?()*****************************
+      def start_with?(str)
+          return(false) if str.empty?
+          return( self[0,str.size] == str )
+      end
+      #****************************end_with?()*******************************
+      def end_with?(str)
+          return(false) if str.empty?
+          return( self[-str.size, str.size] == str )
+      end
+      #****************************each_char()*******************************
+      def each_char
+          self.each_byte {|b| yield b.chr}
+      end
+   end
+end
+#****************************************************************************
+$java_keywords = %w(
+        abstract   assert     boolean    break      byte       
+        catch      char       class      const      continue   
+        do         double     else       enum       extends    
+        finally    float      for        goto       if         
+        import     instanceof int        interface  long       
+        new        package    private    protected  public     
+        short      static     strictfp   super      switch     
+        this       throw      throws     transient  try        
+        volatile   while      )
+
+$function_name = ""
+$stack = []
+#*****************************create_package()***************************
+def create_package()
+
+   if RUBY_PLATFORM =~ /darwin|linux|freebsd|netbsd|cygwin/i
+      dir_delim = '/'
+      copy = "cp"
+   else
+      dir_delim = '\\'
+      copy = "COPY"
+   end
+ 
+   homedir = ENV["HOME"] 
+   package_path = homedir + dir_delim + "ijpackage"
+   libname = homedir + dir_delim + "Libij.class"
+
+   abort(libname + " does not exist.") unless File.exists?(libname)
+ 
+   unless File.exists?(package_path) && File.directory?(package_path)
+       Dir.mkdir(package_path)
+       done = system("#{copy} #{libname} #{package_path}")  
+       abort("can not copy Libij.class to #{package_path}") unless done 
+   end 
+end
+#*******************************mk_command()*****************************
+def mk_command()
+
+   homedir = ENV["HOME"] 
+   if RUBY_PLATFORM =~ /darwin|linux|freebsd|netbsd/i
+      dir_delim = '/'
+      path_delim = ':'
+      cmd = " -cp " + "#{homedir}" + dir_delim + "ijpackage"
+      cmd += path_delim + "."
+   elsif RUBY_PLATFORM =~ /cygwin/i
+      dir_delim = '/'
+      path_delim = ';'
+      cmd = "-cp " 
+      cmd += "\"" + "#{homedir}" + dir_delim + "ijpackage"
+      cmd += path_delim + "." + "\""
+   else
+      dir_delim = '\\'
+      path_delim = ';'
+      cmd = "-cp " + "#{homedir}" + dir_delim + "ijpackage"
+      cmd += path_delim + "."
+   end
+   cmd += " "  
+end
+#*****************************is_function?()*****************************
+def is_function?(xline)
+  $headers << xline if xline =~ /^\/\/[*]+\w+/ 
+  return (false) if xline =~ /^\/\//   || xline =~ /^\/\*/ || 
+                    xline =~ /;$/      || (xline =~ /(.*)/) == nil ||
+                    xline =~ /=.*(.*)/ || xline =~ /^\}/
+  
+  return (false) if (xline =~ /^.*\s+([\w$]+)(\(.*\))/) == nil
+  return (false) if $java_keywords.include?($1)
+  $function_name=$1
+  return(true)
+end
+#*****************************is_class?()*******************************
+def is_class?(xline)
+  puts "in is_class?:" + xline  if $debug && ! xline.nil?
+  return (false) if xline =~ /^\s*\/\/.*$/ || xline =~ /^\/\*/
+
+  if xline[/[()]/] == nil && xline['='] == nil && 
+     xline =~ /^.*class\s+(\S+)\s*.*$/ 
+     $stack << $1
+     return(true)
+  end
+     
+  return (false)
+end
+#*****************************is_interface?()***************************
+def is_interface?(xline)
+  puts "in is_interface?:" + xline  if $debug && !xline.nil?
+  return (false) if xline =~ /^\s*\/\/.*$/ || xline =~ /^\/\*/
+
+  if xline[/[()]/] == nil && xline['='] == nil && 
+     xline =~ /^.*interface\s+(\S+)\s*.*$/ 
+     $stack << $1
+     return(true)
+  end
+     
+  return (false)
+end
+#********************************help()*********************************
+def help
+   str = <<-EOJ
+   usage: ij <options> <command line items>
+
+   options are:
+
+   -h :Displays this help menu
+   -e 'java code':   runs the java code
+      for example:
+      -e 'int x=5;println("x = " +x);'
+   -d :puts ij in the debug mode. The class and function files will be
+       saved for debuging purposes.
+   -D width,height: to specify the new width and height of the graphics
+      window. Default is 550,450
+
+   -a file1,file2,... : adds extra files to the source code
+      for example:
+      -a Average.java,Names.java,Output.java
+
+   -E Editor: uses the designated text editor (default is vi)
+      for exampe:
+      -E pico
+
+   -f Java filename: speifies the name of the java file. default is
+      Interactive_java_000.java
+
+   -g allows using and creating GUI
+ 
+   -G global_variables_declaraation: specifies types and names of those
+      global variables used in the graphics environment.
+      For example:
+      -G 'int x=9,y=23;String str="";double d=98.7;'
+
+   -i package1,package2,... : imports packages
+      for example:
+      -i "java.awt.*,javax.swing.*,java.util.*"
+
+   -I : shows the listing of all imported packages.
+   -c class option(s): provides class options such as implements interface,
+                       extends super class.
+   -C class_name: dsiplays all of the methods in that class.
+   -l : lists relataed java files.
+   -m method option(s): provides methods options such as throws exceptions
+   -M : displays the listing of all of the ij methods.
+   -z : deletes temp, and java files, and clears the text editor buffer. 
+   -v : Displays version number
+
+   EOJ
+   puts str
+   exit(0)
+end
+#********************************cls()**********************************
+def cls
+    print "\033[2J"
+    printf "\033[%d;%dH", 1, 1
+end
+#****************************separate_classes()*************************
+def separate_classes(temparr)
+    cnt = 0
+    in_class = false
+    see_brace = false
+
+    fout = File.open($class_file, 'w')
+    temparr.each_with_index do |line,i|
+       xline = line.chomp.strip.squeeze(' ') 
+       #puts "xline=[#{xline}]" 
+       if is_class?(xline)
+           puts xline + " is a class" if $debug
+           in_class = true   
+           fout.puts "     " + line
+           temparr[i] = nil
+       else
+           if in_class
+              if xline == "{"
+                 cnt += 1
+                 see_brace = true
+              end
+              if xline == "}"
+                 cnt -= 1
+                 see_brace = true
+              end
+              fout.puts "     " + line
+              temparr[i] = nil
+              if cnt <=0 && see_brace
+                 in_class = false 
+                 see_brace = false
+              end
+           end          
+       end
+    end
+   fout.close
+end
+#***************************separate_interfaces()************************
+def separate_interfaces(temparr)
+    cnt = 0
+    in_interface = false
+    see_brace = false
+
+    fout = File.open($interface_file, 'w')
+    temparr.each_with_index do |line,i|
+       xline = line.chomp.strip.squeeze(' ') 
+       #puts "xline=[#{xline}]" 
+       if is_interface?(xline)
+           puts xline + " is an interface" if $debug
+           in_interface = true   
+           fout.puts "     " + line
+           temparr[i] = nil
+       else
+           if in_interface
+              if xline == "{"
+                 cnt += 1
+                 see_brace = true
+              end
+              if xline == "}"
+                 cnt -= 1
+                 see_brace = true
+              end
+              fout.puts "     " + line
+              temparr[i] = nil
+              if cnt <=0 && see_brace
+                 in_interface = false 
+                 see_brace = false
+              end
+           end          
+       end
+    end
+   fout.close
+end
+#****************************separate_functions()***********************
+def separate_functions(temparr)
+    cnt = 0
+    main_flag,in_function = false,false
+    see_brace = false
+
+    fout = File.open($functionfile, 'w')
+    temparr.each_with_index do |line,i|
+       xline = line.chomp.strip.squeeze(' ') unless line.nil?
+       #puts "xlin=[#{xline}]"
+       if is_function?(xline)
+           in_function = true   
+           main_flag = true if $function_name == "main" 
+           line = "//" + line if main_flag 
+           fout.puts "     " + line
+           temparr[i] = nil
+       else
+           if in_function
+              if xline == "{"
+                 cnt += 1
+                 see_brace = true
+              end
+              if xline == "}"
+                 cnt -= 1
+                 see_brace = true
+              end
+
+              line = "//" + line if main_flag 
+              fout.puts "     " + line
+              temparr[i] = nil
+              if cnt <=0 && see_brace
+                 in_function = false 
+                 see_brace = false
+              end
+           end          
+       end
+    end
+   fout.close
+end
+#************************************************************************
+hflag,eflag,fflag,iflag,cflag,mflag = false,false,false,false,false,false
+zflag,vflag,aflag,$debug,lflag,tflag = false,false,false,false,false,false
+_iflag,_mflag, _cflag, gflag, _gflag = false,false,false,false,false
+_dflag = false
+
+editor = "vi"  # default text editor
+method_opts,class_opts,import_opts,code = "","","",""
+file_names=""
+cmdline_args = ""
+class_name = ""
+xversion = "5.0"   # it was numeric in the previous versions.
+javafile = "Interactive_java_000.java"
+global_vars = ""
+gui_dimension = "550,450"
+width, height = 550, 450
+
+opts = GetoptLong.new(
+                       ["-a", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-c", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-C", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-d", GetoptLong::NO_ARGUMENT],
+                       ["-D", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-e", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-f", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-g", GetoptLong::NO_ARGUMENT],
+                       ["-G", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-E", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-h", GetoptLong::NO_ARGUMENT],
+                       ["-i", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-I", GetoptLong::NO_ARGUMENT],
+                       ["-l", GetoptLong::NO_ARGUMENT],
+                       ["-m", GetoptLong::REQUIRED_ARGUMENT],
+                       ["-M", GetoptLong::NO_ARGUMENT],
+                       ["-v", GetoptLong::NO_ARGUMENT],
+                       ["-z", GetoptLong::NO_ARGUMENT]
+                     )
+
+begin
+   opts.each do |opt, arg|
+      case opt
+         when "-a" 
+            aflag = true
+            file_names = arg
+         when "-d" 
+            $debug = true
+         when "-h" 
+            hflag = true
+         when "-i" 
+            iflag = true
+            import_opts = arg
+         when "-I" 
+            _iflag = true
+         when "-z" 
+            zflag = true
+         when "-e" 
+            eflag = true
+            code = arg
+         when "-f" 
+            fflag = true
+            javafile = arg
+         when "-g" 
+            gflag = true
+         when "-l" 
+            lflag = true
+         when "-m" 
+            $mflag = true
+         when "-M" 
+            _mflag = true
+         when "-c" 
+            cflag = true
+            class_opts = arg
+         when "-C" 
+            _cflag = true
+            class_name = arg
+         when "-E" 
+            tflag = true
+            editor = arg
+         when "-G" 
+            _gflag = true
+            global_vars = arg.chomp.strip
+         when "-D" 
+            _dflag = true
+            gui_dimension = arg.chomp.strip
+         when "-v" 
+            vflag = true
+      end
+   end
+rescue => err
+    #puts err
+    exit(1)
+end
+
+ARGV.each {|s| cmdline_args += s + " "} unless ARGV.size == 0
+
+help if hflag
+
+abort("version=#{xversion}") if vflag
+create_package()   #  create ijpackage if it does not exist
+
+if _iflag
+   import_packages = %w(util io net awt awt.event swing applet lang.reflect 
+                        ijpackage)
+   puts "imported packages are:"
+   import_packages.each do |p|
+      if p == "swing" 
+         puts "javax.#{p}.*"
+      else
+         puts "java.#{p}.*"
+      end
+   end
+   exit(0)
+end
+
+if gflag && _gflag
+   global_vars += ";" unless global_vars.end_with? ';'
+end
+
+if gflag && _dflag
+   xx, yy = gui_dimension.split(',')
+   width, height = xx.to_i, yy.to_i
+   if width <= 10 || height <= 10
+      width = 550
+      height = 450
+   end
+end
+
+if _mflag
+   ij_methods = ["void print(String s)", "void println(String s)",
+                 "void printf(String fmt,Object ...)",
+                 "void p(String s)", 
+                 "void p(String s[])", "void p(int n[])",
+                 "void p(double d[])", "void p(byte b[])",
+                 "void p(boolean b[])",
+                 "void p()",
+                 "void p(long x[])", "void puts(String s)",
+                 "void pf(String fmt, Object ...)",
+                 "void die(String msg)", "int  ord(char c)",
+                 "void sleep(long msec)",
+                 "void cls()",
+                 "char chr(int x)", "int  ord(char c)",
+                 "int  count(String s, String t)",
+                 "int  rand(int a, int b)",
+                 "int randomColor()","int random_x()", "int random_y()",
+                 "int random_w()", "int random_h()",  
+                 "double square(double num)",
+                 "String left(String s, int len)",
+                 "String right(String s, int len)",
+                 "String[] grep(String[] arr, String regex)",
+                 "String[] $(String str)",
+                 "String ltrim(String s)","String rtrim(String s)",
+                 "String join(String s, String delim)",
+                 "String capitalize(String s)",
+                 "String mySize()",
+                 "boolean has(String s, String t)",
+                 "boolean has(String s, char c)",
+                 "boolean isPrime(int num)",
+                 "int[] getPrimes(int from. int to)",
+                 "int[] toArray(ArrayList<Integer>)",
+                 "double[] toArray(ArrayList<Double>)",
+                 "float[] toArray(ArrayList<Float>)",
+                 "short[] toArray(ArrayList<Short>)",
+                 "long[] toArray(ArrayList<Long>)",
+                 "byte[] toArray(ArrayList<Byte>)",
+                 "char[] toArray(ArrayList<Character>)",
+                 "boolean[] toArray(ArrayList<Boolean>)",
+                 "String[] toArray(ArrayList<String>)"
+                ]
+   puts "ij methods are:"
+   ij_methods.each {|m| puts m}
+   exit(0)
+end
+
+if _cflag
+   done = false
+   #### The following is a short listing of most aften used java packages.
+   #    This list could be extended by users if desired.
+
+   class_array = %w(lang util io applet net math awt awt.event swing text 
+                    sql beans rmi security util.regex util.zip util.jar
+                    lang.reflect
+                   )
+
+   class_array.each do |c|
+     package = (c == "swing") ? "javax" : "java"
+     %x(javap 2>/dev/null "#{package}.#{c}.#{class_name}").split('\n').each do
+     |m|
+        puts m.gsub(/java\.[^.]+\./, '').gsub(/\)\s+throws/,') throws')
+        done=true
+     end
+     break if done
+   end
+   exit(0)
+end
+       
+#puts "javafile is: #{javafile}"; exit(0)
+
+if fflag
+  abort("The java filename is not capitalized") if javafile !~ /^[A-Z]/
+  abort("The java filename needs .java extension") if !javafile.end_with?(".java")
+end
+
+tempfile        = "ij_temp_file_000.tmp"
+ij_logfile      = "ij.log"
+classfile       = javafile.split('.')[0]
+bytecodefile    = classfile + ".class"
+$functionfile   = classfile + ".func"
+$class_file     = classfile + ".cls"
+$interface_file = classfile + ".int"
+ggg             = ""
+
+File.delete(tempfile) if zflag && File.exists?(tempfile)
+
+if lflag
+   cmd = "ls -l #{tempfile} ${javafile} ${classfile} ${bytecodefile}"
+   cmd += " #$functionfile #$class_file #$interface_file 2>/dev/null"
+   puts `#{cmd}`
+   exit(0)
+end
+
+if iflag
+  abort("no import is specified") if import_opts.empty?
+  arr = import_opts.split(',')
+  x = ""
+  arr.each { |y| x += "import " + y + ";" }
+end
+if gflag
+  all_imports = <<-EOJ
+  import java.util.*;
+  import java.net.*;
+  import java.io.*;
+  import javax.swing.*;
+  import java.applet.*;
+  import java.awt.*;
+  import java.awt.event.*;
+  import java.lang.reflect.*;
+  import static java.lang.Math.*;
+  import static java.lang.System.*;
+  import static ijpackage.Libij.*; 
+  #{x}
+  EOJ
+else
+  all_imports=""
+end
+
+string_methods = <<-EOJ
+// nothing here
+EOJ
+
+
+if gflag
+      
+  gui_section = <<-EOJ
+  #{all_imports}
+// This program runs only in the ij environment, and creates a very simple
+// graphics window. Users are encourage to modify the paint method to do
+// more parctice with GUI.
+
+class SimpleWindow extends JFrame
+{ 
+   #{global_vars}
+   int cnt = 0;
+   /******************************sleep()****************************/
+   public void sleep(long ms)
+   {
+       try
+       {
+            Thread.sleep(ms);
+       }
+       catch(InterruptedException e){}
+   }
+   /**************************repaint(long ms)***********************/
+   public void repaint(long ms)
+   {
+       sleep(ms);
+       repaint();
+   }
+   /************repaint(long ms, boolean clearScreen)****************/
+   public void repaint(long ms, boolean clearScreen)
+   {
+       sleep(ms);
+       if(clearScreen) cls();
+       repaint();
+   }
+   /******************************rand()*****************************/
+   public int rand(int a, int b)
+   {
+       return((int)((b-a+1)*Math.random() + a));
+   }
+   /***************************randomColor()*************************/
+   public Color randomColor()
+   {
+       return(new Color(rand(0,255), rand(0,255), rand(0,255)));
+   }  
+   /*******************************cls()*****************************/
+   public void cls()
+   {
+       Graphics g = getGraphics();
+       g.setColor(getBackground());
+       g.fillRect(0, 0, getSize().width, getSize().height);
+       g.setColor(getForeground());
+   }
+   /******************************mySize()***************************/
+   public String mySize()
+   {
+       return(getSize().width+","+getSize().height);
+   }
+   /*****************************random_x()**************************/
+   public int random_x(int x)
+   {
+       return(rand(0,x));
+   }
+   /*****************************random_y()**************************/
+   public int random_y(int y)
+   {
+       return(rand(0,y));
+   }
+   /*****************************random_w()**************************/
+   public int random_w(int w)
+   {
+       return(rand(0,w));
+   }
+   /*****************************random_h()**************************/
+   public int random_h(int h)
+   {
+       return(rand(0,h));
+   }
+
+   /***************************SimpleWindow()************************/
+   public SimpleWindow()
+   {
+      setTitle("A Simple Window");
+      setSize(#{width}, #{height});
+      setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      setVisible(true);
+   }
+   #{string_methods}
+   /******************************paint()****************************/
+   public void paint(Graphics g)
+   {
+   ///////////////////////////////////not complete
+EOJ
+
+#ggg = "new SimpleWindow();"
+end  #end of if gflag
+
+if !gflag
+  all_imports = <<-EOJ
+  import java.util.*;
+  import java.net.*;
+  import java.io.*;
+  import javax.swing.*;
+  import java.applet.*;
+  import java.awt.*;
+  import java.awt.event.*;
+  import java.lang.reflect.*;
+  import static java.lang.Math.*;
+  import static java.lang.System.*;
+  import static ijpackage.Libij.*;
+  #{x}
+  EOJ
+else
+  all_imports=""
+end
+
+import_section = <<-EOJ
+#{all_imports}
+
+class #{classfile} #{class_opts}
+{
+   #{string_methods}
+
+   #{ggg}
+EOJ
+
+end_section = <<-EOJ
+   }
+}
+EOJ
+
+if eflag
+   abort("empty code") if code.empty?
+   done = system("echo \'#{code}\' > #{tempfile}");       
+   abort("can not create the temp file") unless done
+else
+   unless file_names.empty? 
+      file_names = file_names.split(',').join(' ')
+      cmd = "cat  #{file_names}" + " >> #{tempfile}"
+      system(cmd)
+   end
+   system("#{editor} #{tempfile} 2>#{ij_logfile}")
+end
+
+if File.exist? tempfile and ! File.zero? tempfile
+   temparr = File.readlines(tempfile)
+   junkarray = []
+   temparr.each do |line|
+     line.chomp!
+     line.rstrip!
+     if line =~ /\{\s*$/
+        junkarray << line[0...-1]
+        junkarray << '{'
+     elsif line =~ /\{.+$/
+        i = line.index('{')
+        junkarray << line[0...i]
+        junkarray << '{'
+        ss = line[i+1..-1]
+        i = ss.rindex('}')
+        if i !=nil
+           junkarray << ss[0...i]
+           junkarray << ss[i..-1]
+        end
+     elsif line =~ /\}\s*$/ 
+        i = line.rindex('}')
+        junkarray << line[0...i]
+        junkarray << line[i..-1]
+     else
+        junkarray << line
+     end
+   end
+   temparr = junkarray 
+
+   separate_interfaces(temparr) 
+   temparr.compact!
+   separate_classes(temparr) 
+   temparr.compact!
+   separate_functions(temparr) 
+
+   f = File.open(javafile, 'w')
+   if gflag
+      f.puts gui_section
+   end   
+   if !temparr.empty? && gflag
+     temparr.each {|line| f.puts "      " + line}
+     f.puts end_section
+   end
+   f.puts import_section
+   IO.foreach($functionfile){|line| f.puts line}
+   f.puts "   " + "public static void main(String args[]) #{method_opts}"
+   f.puts "   "+"{"
+   temparr.compact!
+   if !temparr.empty? && !gflag
+     temparr.each {|line| f.puts "      " + line}
+     f.puts end_section
+     IO.foreach($interface_file){|line| f.puts line}
+     IO.foreach($class_file){|line| f.puts line}
+     f.close 
+   end
+   if gflag
+      f.puts "      new SimpleWindow();" 
+      f.puts end_section
+      f.close 
+   end
+elsif !gflag
+   puts "No file is created"
+   exit(1)
+end
+cls unless $debug
+cmd = mk_command()
+
+done = system("javac #{cmd} #{javafile}") if File.exist? javafile
+system("java  #{cmd} #{classfile} " + "#{cmdline_args}") if done
+
+File.delete(tempfile) if zflag && File.exist?(tempfile)
+File.delete(javafile) if zflag && File.exist?(javafile)
+File.delete(bytecodefile) if File.exist?(bytecodefile) && !$debug
+File.delete($functionfile) if File.exist?($functionfile) && !$debug
+File.delete($class_file) if File.exist?($class_file) && !$debug
+File.delete($interface_file) if File.exist?($interface_file) && !$debug
+File.delete(ij_logfile) if File.exist?(ij_logfile) && !$debug
+File.delete("SimpleWindow.class") if File.exist?("SimpleWindow.class")&&!$debug
+
+## delete class files
+$stack.compact!
+if zflag && ! $stack.empty?
+   $stack.each do |f|
+      fname = f+".class"
+      File.delete(fname) if File.exist?(fname)
+   end
+end
+

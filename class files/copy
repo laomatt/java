@@ -1,0 +1,16 @@
+#!/usr/bin/ksh
+#                 
+# Author:   Abbas Moghtanei
+# Date  :  07/07/11        
+# Program Name: copy 
+#                         
+   (( $# == 0 )) && print "usage: copy file1 file2 ..." && exit 1
+   for fname in "$@"; do
+     if [ -f "$fname" ]; then
+        cp $fname ~
+     else
+        print "$fname does not exist"
+     fi
+   done
+
+ 

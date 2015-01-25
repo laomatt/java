@@ -1,0 +1,536 @@
+
+-----------------------------output--------------------------------------------
+
+Script started on Mon Oct 13 15:03:42 2014
+[?1034hbash-3.2$ probe[K[K[K[K[Kjava probe -h
+-c :  Info about Constructors 
+-m :  Info about Methods 
+-v :  Info about Variables 
+-a :  Info about everthing 
+-C :  Info about all the Constants 
+-i :  Info about the interfaces 
+-h :  help 
+ 
+bash-3.2$ java probe -h[Kc Integer[K[K[K[K[K[K[KString
+----------------Constructors for String---------------- 
+           ( ) 
+           ( int,  int,  ) 
+           ( class java.nio.charset.Charset,  ) 
+           ( class java.lang.String,  ) 
+           ( int,  int,  class java.nio.charset.Charset,  ) 
+           ( ) 
+           ( ) 
+           ( int,  int,  ) 
+           ( int,  int,  ) 
+           ( ) 
+           ( ) 
+           ( ) 
+           ( int,  int,  class java.lang.String,  ) 
+           ( int,  ) 
+           ( int,  int,  int,  ) 
+ 
+ 
+bash-3.2$ java probe -c String[1P Stringm String
+---------------- Methods forString---------------- 
+---: String Method: equals 
+ Parameter types:          Object  
+         Returns: boolean 
+---: String Method: toString 
+ Parameter types:  
+         Returns: String 
+---: String Method: hashCode 
+ Parameter types:  
+         Returns: int 
+---: String Method: compareTo 
+ Parameter types:          Object  
+         Returns: int 
+---: String Method: compareTo 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          String          int  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: valueOf 
+ Parameter types:          char  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          Object  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          boolean  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          char[]          int          int  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          char[]  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          long  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          float  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          int  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          double  
+         Returns: String 
+---: String Method: length 
+ Parameter types:  
+         Returns: int 
+---: String Method: isEmpty 
+ Parameter types:  
+         Returns: boolean 
+---: String Method: charAt 
+ Parameter types:          int  
+         Returns: char 
+---: String Method: codePointAt 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: codePointBefore 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: codePointCount 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: offsetByCodePoints 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: getChars 
+ Parameter types:          int          int          char[]          int  
+         Returns: void 
+---: String Method: getBytes 
+ Parameter types:          String  
+         Returns: byte[] 
+---: String Method: getBytes 
+ Parameter types:          int          int          byte[]          int  
+         Returns: void 
+---: String Method: getBytes 
+ Parameter types:          Charset  
+         Returns: byte[] 
+---: String Method: getBytes 
+ Parameter types:  
+         Returns: byte[] 
+---: String Method: contentEquals 
+ Parameter types:          CharSequence  
+         Returns: boolean 
+---: String Method: contentEquals 
+ Parameter types:          StringBuffer  
+         Returns: boolean 
+---: String Method: equalsIgnoreCase 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: compareToIgnoreCase 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: regionMatches 
+ Parameter types:          boolean          int          String          int          int  
+         Returns: boolean 
+---: String Method: regionMatches 
+ Parameter types:          int          String          int          int  
+         Returns: boolean 
+---: String Method: startsWith 
+ Parameter types:          String          int  
+         Returns: boolean 
+---: String Method: startsWith 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: endsWith 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: lastIndexOf 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: lastIndexOf 
+ Parameter types:          String          int  
+         Returns: int 
+---: String Method: lastIndexOf 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: lastIndexOf 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: substring 
+ Parameter types:          int          int  
+         Returns: String 
+---: String Method: substring 
+ Parameter types:          int  
+         Returns: String 
+---: String Method: subSequence 
+ Parameter types:          int          int  
+         Returns: CharSequence 
+---: String Method: concat 
+ Parameter types:          String  
+         Returns: String 
+---: String Method: replace 
+ Parameter types:          char          char  
+         Returns: String 
+---: String Method: replace 
+ Parameter types:          CharSequence          CharSequence  
+         Returns: String 
+---: String Method: matches 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: contains 
+ Parameter types:          CharSequence  
+         Returns: boolean 
+---: String Method: replaceFirst 
+ Parameter types:          String          String  
+         Returns: String 
+---: String Method: replaceAll 
+ Parameter types:          String          String  
+         Returns: String 
+---: String Method: split 
+ Parameter types:          String  
+         Returns: String[] 
+---: String Method: split 
+ Parameter types:          String          int  
+         Returns: String[] 
+---: String Method: toLowerCase 
+ Parameter types:          Locale  
+         Returns: String 
+---: String Method: toLowerCase 
+ Parameter types:  
+         Returns: String 
+---: String Method: toUpperCase 
+ Parameter types:          Locale  
+         Returns: String 
+---: String Method: toUpperCase 
+ Parameter types:  
+         Returns: String 
+---: String Method: trim 
+ Parameter types:  
+         Returns: String 
+---: String Method: toCharArray 
+ Parameter types:  
+         Returns: char[] 
+---: String Method: format 
+ Parameter types:          String          Object[]  
+         Returns: String 
+---: String Method: format 
+ Parameter types:          Locale          String          Object[]  
+         Returns: String 
+---: String Method: copyValueOf 
+ Parameter types:          char[]  
+         Returns: String 
+---: String Method: copyValueOf 
+ Parameter types:          char[]          int          int  
+         Returns: String 
+---: String Method: intern 
+ Parameter types:  
+         Returns: String 
+---: String Method: wait 
+ Parameter types:          long          int  
+         Returns: void 
+---: String Method: wait 
+ Parameter types:          long  
+         Returns: void 
+---: String Method: wait 
+ Parameter types:  
+         Returns: void 
+---: String Method: getClass 
+ Parameter types:  
+         Returns: Class 
+---: String Method: notify 
+ Parameter types:  
+         Returns: void 
+---: String Method: notifyAll 
+ Parameter types:  
+         Returns: void 
+ 
+ 
+bash-3.2$ java probe -m String[1P Stringv String
+---------------- Variables forString---------------- 
+  Comparator      CASE_INSENSITIVE_ORDER 
+ 
+ 
+bash-3.2$ java probe -v String[1P Stringa String[1P StringC String
+---------------- Constants forString---------------- 
+     value 
+     hash 
+     serialVersionUID 
+     serialPersistentFields 
+     CASE_INSENSITIVE_ORDER 
+     HASHING_SEED 
+     hash32 
+ 
+ 
+bash-3.2$ java probe -C String[1P Stringi String
+---------------- Interfaces for String---------------- 
+  Serializable 
+  Comparable 
+  CharSequence 
+ 
+ 
+bash-3.2$ java probe -i String[1P Stringa String
+----------------Constructors for String---------------- 
+           ( ) 
+           ( int,  int,  ) 
+           ( class java.nio.charset.Charset,  ) 
+           ( class java.lang.String,  ) 
+           ( int,  int,  class java.nio.charset.Charset,  ) 
+           ( ) 
+           ( ) 
+           ( int,  int,  ) 
+           ( int,  int,  ) 
+           ( ) 
+           ( ) 
+           ( ) 
+           ( int,  int,  class java.lang.String,  ) 
+           ( int,  ) 
+           ( int,  int,  int,  ) 
+ 
+ 
+---------------- Methods forString---------------- 
+---: String Method: equals 
+ Parameter types:          Object  
+         Returns: boolean 
+---: String Method: toString 
+ Parameter types:  
+         Returns: String 
+---: String Method: hashCode 
+ Parameter types:  
+         Returns: int 
+---: String Method: compareTo 
+ Parameter types:          Object  
+         Returns: int 
+---: String Method: compareTo 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          String          int  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: indexOf 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: valueOf 
+ Parameter types:          char  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          Object  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          boolean  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          char[]          int          int  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          char[]  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          long  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          float  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          int  
+         Returns: String 
+---: String Method: valueOf 
+ Parameter types:          double  
+         Returns: String 
+---: String Method: length 
+ Parameter types:  
+         Returns: int 
+---: String Method: isEmpty 
+ Parameter types:  
+         Returns: boolean 
+---: String Method: charAt 
+ Parameter types:          int  
+         Returns: char 
+---: String Method: codePointAt 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: codePointBefore 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: codePointCount 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: offsetByCodePoints 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: getChars 
+ Parameter types:          int          int          char[]          int  
+         Returns: void 
+---: String Method: getBytes 
+ Parameter types:          String  
+         Returns: byte[] 
+---: String Method: getBytes 
+ Parameter types:          int          int          byte[]          int  
+         Returns: void 
+---: String Method: getBytes 
+ Parameter types:          Charset  
+         Returns: byte[] 
+---: String Method: getBytes 
+ Parameter types:  
+         Returns: byte[] 
+---: String Method: contentEquals 
+ Parameter types:          CharSequence  
+         Returns: boolean 
+---: String Method: contentEquals 
+ Parameter types:          StringBuffer  
+         Returns: boolean 
+---: String Method: equalsIgnoreCase 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: compareToIgnoreCase 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: regionMatches 
+ Parameter types:          boolean          int          String          int          int  
+         Returns: boolean 
+---: String Method: regionMatches 
+ Parameter types:          int          String          int          int  
+         Returns: boolean 
+---: String Method: startsWith 
+ Parameter types:          String          int  
+         Returns: boolean 
+---: String Method: startsWith 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: endsWith 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: lastIndexOf 
+ Parameter types:          String  
+         Returns: int 
+---: String Method: lastIndexOf 
+ Parameter types:          String          int  
+         Returns: int 
+---: String Method: lastIndexOf 
+ Parameter types:          int  
+         Returns: int 
+---: String Method: lastIndexOf 
+ Parameter types:          int          int  
+         Returns: int 
+---: String Method: substring 
+ Parameter types:          int          int  
+         Returns: String 
+---: String Method: substring 
+ Parameter types:          int  
+         Returns: String 
+---: String Method: subSequence 
+ Parameter types:          int          int  
+         Returns: CharSequence 
+---: String Method: concat 
+ Parameter types:          String  
+         Returns: String 
+---: String Method: replace 
+ Parameter types:          char          char  
+         Returns: String 
+---: String Method: replace 
+ Parameter types:          CharSequence          CharSequence  
+         Returns: String 
+---: String Method: matches 
+ Parameter types:          String  
+         Returns: boolean 
+---: String Method: contains 
+ Parameter types:          CharSequence  
+         Returns: boolean 
+---: String Method: replaceFirst 
+ Parameter types:          String          String  
+         Returns: String 
+---: String Method: replaceAll 
+ Parameter types:          String          String  
+         Returns: String 
+---: String Method: split 
+ Parameter types:          String  
+         Returns: String[] 
+---: String Method: split 
+ Parameter types:          String          int  
+         Returns: String[] 
+---: String Method: toLowerCase 
+ Parameter types:          Locale  
+         Returns: String 
+---: String Method: toLowerCase 
+ Parameter types:  
+         Returns: String 
+---: String Method: toUpperCase 
+ Parameter types:          Locale  
+         Returns: String 
+---: String Method: toUpperCase 
+ Parameter types:  
+         Returns: String 
+---: String Method: trim 
+ Parameter types:  
+         Returns: String 
+---: String Method: toCharArray 
+ Parameter types:  
+         Returns: char[] 
+---: String Method: format 
+ Parameter types:          String          Object[]  
+         Returns: String 
+---: String Method: format 
+ Parameter types:          Locale          String          Object[]  
+         Returns: String 
+---: String Method: copyValueOf 
+ Parameter types:          char[]  
+         Returns: String 
+---: String Method: copyValueOf 
+ Parameter types:          char[]          int          int  
+         Returns: String 
+---: String Method: intern 
+ Parameter types:  
+         Returns: String 
+---: String Method: wait 
+ Parameter types:          long          int  
+         Returns: void 
+---: String Method: wait 
+ Parameter types:          long  
+         Returns: void 
+---: String Method: wait 
+ Parameter types:  
+         Returns: void 
+---: String Method: getClass 
+ Parameter types:  
+         Returns: Class 
+---: String Method: notify 
+ Parameter types:  
+         Returns: void 
+---: String Method: notifyAll 
+ Parameter types:  
+         Returns: void 
+ 
+ 
+---------------- Variables forString---------------- 
+  Comparator      CASE_INSENSITIVE_ORDER 
+ 
+ 
+---------------- Constants forString---------------- 
+     value 
+     hash 
+     serialVersionUID 
+     serialPersistentFields 
+     CASE_INSENSITIVE_ORDER 
+     HASHING_SEED 
+     hash32 
+ 
+ 
+---------------- Interfaces for String---------------- 
+  Serializable 
+  Comparable 
+  CharSequence 
+ 
+ 
+bash-3.2$ exit
+
+Script done on Mon Oct 13 15:04:59 2014

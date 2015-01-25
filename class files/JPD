@@ -1,0 +1,19 @@
+#!/bin/ksh
+#################################jpd()################################### 
+#jpd (Java Private Detector)
+#  
+jpd()
+{
+  (( $# == 0 ))&&print "usage:jpd class_name"&&return 1
+  packages="java.lang java.util java.io java.awt java.applet java.net "
+  packages=$packages" java.awt.even javax.swing"
+
+  for p in $packages
+  do
+    javap $p.$1 2>/dev/null | sed -e "s/java\.[^.]*\.//g"\
+    -e "s/[)][' '][' ']*throws/) throws/g" 
+  done
+}
+jpd $*
+exit 0
+

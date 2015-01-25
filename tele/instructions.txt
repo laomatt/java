@@ -1,0 +1,10 @@
+Navigate in your command line to the folder which contains ALL of the class files.
+
+to decode:
+
+type into command line 'java generic -d'  followed by as space and copy and paste the exact number-code
+
+
+to encode:
+
+type into command line 'java generic -e' follwed by a space and the message you wish to encode (no quotations)
